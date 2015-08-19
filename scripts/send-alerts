@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+"""
+Detect and send price alerts for AWS spot instances.
+
+Retrieves alert subscriptions from redis and scans the requested clouds firing-off any alerts discovered.
+
+This script will normally be run by a cronjob.
+
+"""
+
+import datetime
+import json
+import boto3
+import redis
+import requests
+
+def get_spot_prices(RegionName, StartTime=None, EndTime=None, InstanceTypes=[], ProductDescriptions=[], AvailabilityZone=""):
+    """ get spot prices. """
+    client = boto3.client(
+        service_name='ec2',
+        region_name=RegionName,
+    )
+
+    return client.describe_spot_price_history(
+        StartTime=StartTime,
+        EndTime=EndTime,
+        InstanceTypes=InstanceTypes,
+        ProductDescriptions=ProductDescriptions,
+        AvailabilityZone=AvailabilityZone,
+    )
+
+def get_alert_subscriptions():
+    """ Pulls alert subscriptions from Redis """
+    pass
+
+def send_alert_to_slack(WebHook, Channel="#alerts", Username="spotbot", icon_emoji=":space_invader:", Message=":smile: Hello Slack!"):
+    """ Send an alert message to a slack webhook. """
+    data = json.dumps({'channel' : Channel, 'username' : Username, 'text' : Message, 'icon_emoj' : icon_emoji})
+    requests.post(WebHook, data=data)
+
+def main():
+    # now = datetime.datetime.utcnow()
+    # lastScan = now - datetime.timedelta(0, 15*60)
+    # print scan_prices(RegionName='us-west-1', StartTime=lastScan, EndTime=now, InstanceTypes=['g2.2xlarge'], ProductDescriptions=["Windows"], AvailabilityZone='us-west-1c')
+    pass
+
+main()
