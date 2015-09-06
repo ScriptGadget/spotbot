@@ -35,8 +35,8 @@ def get_alert_subscriptions():
 
 def send_alert_to_slack(WebHook, Channel="#alerts", Username="spotbot", icon_emoji=":space_invader:", Message=":smile: Hello Slack!"):
     """ Send an alert message to a slack webhook. """
-    data = json.dumps({'channel' : Channel, 'username' : Username, 'text' : Message, 'icon_emoj' : icon_emoji})
-    requests.post(WebHook, data=data)
+    data = {'channel' : Channel, 'username' : Username, 'text' : Message, 'icon_emoji' : icon_emoji}
+    requests.post(WebHook, json=data)
 
 def main():
     # now = datetime.datetime.utcnow()
