@@ -81,7 +81,7 @@ def main():
 
     now = datetime.datetime.utcnow()
 
-    lastScan = r.get('last_scan')
+    lastScan = r.get('sb:last_scan')
 
     if lastScan is None: 
         lastScan = now - datetime.timedelta(0, 15*60)
@@ -105,7 +105,7 @@ def main():
     for user in messages:
         send_alert_to_slack(WebHook=r.hget('sb:user#' + user, 'slack_webhook'), Message=messages[user]);
 
-    r.set('last_scan', now)
+    r.set('sb:last_scan', now)
 
 
 main()
