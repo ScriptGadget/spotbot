@@ -77,10 +77,15 @@ def send_alert_to_slack(WebHook, Channel="#alerts", Username="spotbot", icon_emo
     requests.post(WebHook, data=json.dumps(data))
 
 def main():
-    now = datetime.datetime.utcnow()
-    lastScan = now - datetime.timedelta(0, 15*60)
-
     r = redis.StrictRedis()
+
+    now = datetime.datetime.utcnow()
+
+    lastScan = r.get('last_scan')
+
+    if lastScan is None: 
+        lastScan = now - datetime.timedelta(0, 15*60)
+
     subs = get_alert_subscriptions(r)
 
     messages = {}
@@ -98,8 +103,9 @@ def main():
                 
 
     for user in messages:
-        print user
         send_alert_to_slack(WebHook=r.hget('sb:user#' + user, 'slack_webhook'), Message=messages[user]);
+
+    r.set('last_scan', now)
 
 
 main()
