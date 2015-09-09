@@ -30,16 +30,46 @@ def get_spot_prices(StartTime, EndTime, Subscription):
     )['SpotPriceHistory']
 
 def get_alert_subscriptions(r):
-    """ Pulls alert subscriptions from Redis """
+    """ Pulls all alert subscriptions from Redis """
     alarms = {}
     cursor = 0
     while True:
         cursor, keys = r.scan(cursor, 'sb:alarm*')
         for key in keys:
             alarms[key] = r.hgetall(key)
+            alarms[key]['redis_key'] = key
         if cursor == 0:
             break
     return alarms
+
+def check_alerts(r, start, end, sub):
+    """ Compare subscription to prices and identify alerts. """
+    alert = None
+    history = get_spot_prices(start, end, sub)
+    if len(history) > 0:
+        price = sorted( history, key=lambda x: x['SpotPrice'] )[0]
+        if sub.has_key('last_alert'):
+            if sub['last_alert'] == 'Over':
+                if float(price['SpotPrice']) < float(sub['threshold']):
+                    r.hset(sub['redis_key'], 'last_alert', 'Under')
+                    price['alert'] = 'Under'
+                    alert = price
+            elif sub['last_alert'] == 'Under':
+                if float(price['SpotPrice']) >= float(sub['threshold']):
+                    r.hset(sub['redis_key'], 'last_alert', 'Over')
+                    price['alert'] = 'Over'
+                    alert = price                
+        else:
+            if float(price['SpotPrice']) < float(sub['threshold']):
+                r.hset(sub['redis_key'], 'last_alert', 'Under')
+                price['alert'] = 'Under'
+                alert = price
+            elif float(price['SpotPrice']) >= float(sub['threshold']):
+                r.hset(sub['redis_key'], 'last_alert', 'Over')
+                price['alert'] = 'Over'
+                alert = price                
+            
+    return alert
 
 def send_alert_to_slack(WebHook, Channel="#alerts", Username="spotbot", icon_emoji=":space_invader:", Message=":smile: Hello Slack!"):
     """ Send an alert message to a slack webhook. """
@@ -52,11 +82,24 @@ def main():
 
     r = redis.StrictRedis()
     subs = get_alert_subscriptions(r)
+
+    messages = {}
     for s in subs:
         sub = subs[s]
-        alerts = [x for x in get_spot_prices(lastScan, now, sub) if float(x['SpotPrice']) > float(sub['threshold'])]
-        if len(alerts) > 0:
-            send_alert_to_slack(WebHook=r.hget('sb:user#' + sub['user'], 'slack_webhook'), Message=":poop: %s 15 minute low of %s greater than %s" %(sub['name'], alerts[0]['SpotPrice'], sub['threshold']));
+        alert = check_alerts(r, lastScan, now, sub)
+        if not alert is None:
+            message = ":chart_with_upwards_trend: %s 15 minute low of %s greater than %s" %(sub['name'], alert['SpotPrice'], sub['threshold'])
+            if alert['alert'] == 'Under':
+                message = ":chart_with_downwards_trend: %s 15 minute low of %s has returned below %s" %(sub['name'], alert['SpotPrice'], sub['threshold'])
+            if messages.has_key(sub['user']):
+                messages[sub['user']] = messages[sub['user']] + "\n" + message
+            else:
+                messages[sub['user']] = message
+                
+
+    for user in messages:
+        print user
+        send_alert_to_slack(WebHook=r.hget('sb:user#' + user, 'slack_webhook'), Message=messages[user]);
 
 
 main()
