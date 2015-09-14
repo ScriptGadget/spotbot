@@ -102,13 +102,18 @@ def main():
         sub = subs[key]
         alert = check_alerts(redis_store, last_scan, now, sub)
         if not alert is None:
-            message = ":chart_with_upwards_trend: %s 15 minute low of %s greater than %s"
-            message = message % (sub['name'], alert['SpotPrice'], sub['threshold'])
+            message = ":chart_with_upwards_trend: "
+            message += "%s 15 minute low of %s greater than %s"
+            message = message % (sub['name'],
+                                 alert['SpotPrice'],
+                                 sub['threshold'])
 
             if alert['alert'] == 'Under':
                 message = ":chart_with_downwards_trend: "
                 message += "%s 15 minute low of %s has returned below %s"
-                message = message % (sub['name'], alert['SpotPrice'], sub['threshold'])
+                message = message % (sub['name'],
+                                     alert['SpotPrice'],
+                                     sub['threshold'])
 
             if messages.has_key(sub['user']):
                 messages[sub['user']] = messages[sub['user']] + "\n" + message
