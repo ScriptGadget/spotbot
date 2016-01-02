@@ -26,11 +26,16 @@ def check_for_alert(history, subscription):
     alert = None
 
     if len(history):
-        if lowest_spotprice(history, subscription['zone'].split()) > float(subscription['threshold']) and subscription['last_alert'] == 'Under':
+        found = None
+        price = lowest_spotprice(history, subscription['zone'].split())
+
+        if price and price > float(subscription['threshold']) and subscription['last_alert'] == 'Under':
+            found = 'Over'
+        elif price and price <= float(subscription['threshold']) and subscription['last_alert'] == 'Over':
+            found = 'Under'
+        if not found is None:
             alert = {'subscription': subscription}
-            alert['subscription']['last_alert'] = 'Over'
-        elif lowest_spotprice(history, subscription['zone'].split()) <= float(subscription['threshold']) and subscription['last_alert'] == 'Over':
-            alert = {'subscription': subscription}
-            alert['subscription']['last_alert'] = 'Under'
+            alert['subscription']['last_alert'] = found
+            alert['spot_price'] = price
 
     return alert

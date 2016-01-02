@@ -125,7 +125,7 @@ class AlertTest(unittest.TestCase):
         assert result is None, 'There should not be an alert for All except 1d'
 
 
-    def test_check_for_alert_match_zone(self):
+    def test_check_that_alert_matches_zone(self):
         """When we match a zone and all other criteria, we should create an alert."""
 
         history = [{u'Timestamp': datetime.datetime(2015, 12, 31, 22, 13, 43,
@@ -183,6 +183,28 @@ class AlertTest(unittest.TestCase):
         result = alert.check_for_alert(history, subscription)
         assert not result is None, "There should be an alert for us_east-1b"
         assert result['subscription']['last_alert'] == 'Over'
+
+    def test_check_for_alert_sets_spotprice(self):
+        """check_for_alert should set the last_alert attribute of the alert to indication the type of the alert."""
+
+        history = [ {u'Timestamp': datetime.datetime(2015, 12, 31, 22, 13, 43,
+                                                     tzinfo=tzutc()),
+                     u'ProductDescription': 'Windows',
+                     u'InstanceType': 'g2.2xlarge',
+                     u'SpotPrice': '0.105200',
+                     u'AvailabilityZone': 'us-east-1b'}]
+
+        subscription = {'name': 'Sub for 1b',
+                     'threshold':'0.05',
+                     'region':'us-east-1',
+                     'zone': 'us-east-1b',
+                     'instance_type':'g2.2xlarge',
+                     'product':'Windows',
+                     'user':'1',
+                     'last_alert':'Under'}
+        result = alert.check_for_alert(history, subscription)
+        assert not result is None, "There should be an alert for us_east-1b"
+        assert result['spot_price'] == 0.105200
 
     def test_lowest_spotprice(self):
         """We should find the lowest spotprice for a given zone or return None."""
