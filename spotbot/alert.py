@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Send price alerts.
+Identify price alerts.
 
 """
 
