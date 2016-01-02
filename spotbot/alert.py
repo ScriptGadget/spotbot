@@ -20,26 +20,17 @@ def lowest_spotprice(history, zones):
 
     return price
 
-def check_for_alerts(history, subscriptions):
-    """Compare subscriptions to prices and create alerts."""
-    alerts = []
-    if len(history) and len(subscriptions):
+def check_for_alert(history, subscription):
+    """Compare subscription to prices and create an alert if necessary. Returns None if no alert found."""
 
-        new_over = filter(
-            lambda x: lowest_spotprice(history, x['zone'].split()) > float(x['threshold']) and x['last_alert'] == 'Under',
-            subscriptions)
+    alert = None
 
-        new_under = filter(
-            lambda x: lowest_spotprice(history, x['zone'].split()) <= float(x['threshold']) and x['last_alert'] == 'Over',
-            subscriptions)
+    if len(history):
+        if lowest_spotprice(history, subscription['zone'].split()) > float(subscription['threshold']) and subscription['last_alert'] == 'Under':
+            alert = {'subscription': subscription}
+            alert['subscription']['last_alert'] = 'Over'
+        elif lowest_spotprice(history, subscription['zone'].split()) <= float(subscription['threshold']) and subscription['last_alert'] == 'Over':
+            alert = {'subscription': subscription}
+            alert['subscription']['last_alert'] = 'Under'
 
-        subscriptions_with_alerts = new_over + new_under
-
-        for sub in subscriptions_with_alerts:
-            if sub['last_alert'] == 'Under':
-                sub['last_alert'] = 'Over'
-            elif sub['last_alert'] == 'Over':
-                sub['last_alert'] = 'Under'
-            alerts.append({'subscription':sub})
-
-    return alerts
+    return alert

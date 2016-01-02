@@ -27,11 +27,11 @@ class AlertTest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_check_for_alerts_empty_history_and_subscriptions(self):
+    def test_check_for_alert_empty_history_and_subscriptions(self):
         """ Test that we handle no history and no subscriptions in a sane way."""
-        assert alert.check_for_alerts([],[]) == [], "Alerts should have been an empty list."
+        assert alert.check_for_alert([],None) is None, "Alerts should have been an empty list."
 
-    def test_check_for_alerts_over_under(self):
+    def test_check_for_alert_over_under(self):
         """ Test that we can match an alert description against relevant history. """
 
         history = [ {u'Timestamp': datetime.datetime(2015, 12, 31, 22, 13, 43,
@@ -66,49 +66,37 @@ class AlertTest(unittest.TestCase):
                      u'AvailabilityZone': 'us-east-1b'},
         ]
 
-        subscriptions = [
-            {'name': 'Dublin Under Twenty',
-             'threshold':'0.2',
-             'region':'eu-west-1',
-             'zone': 'eu-west-1b',
-             'instance_type':'g2.2xlarge',
-             'product':'Windows',
-             'user':'1',
-             'last_alert':'Under'},
-            {'name': 'Virginia Over Twenty',
-             'threshold':'0.2',
-             'region':'us-east-1',
-             'zone': 'us-east-1b',
-             'instance_type':'g2.2xlarge',
-             'product':'Windows',
-             'user':'1',
-             'last_alert':'Over'},
-            {'name': 'Virginia Under Twenty',
-             'threshold':'0.2',
-             'region':'us-east-1',
-             'zone': 'us-east-1b',
-             'instance_type':'g2.2xlarge',
-             'product':'Windows',
-             'user':'1',
-             'last_alert':'Under'},
-            {'name': 'Virginia Under A Nickle',
-             'threshold':'0.05',
-             'region':'us-east-1',
-             'zone': 'us-east-1b',
-             'instance_type':'g2.2xlarge',
-             'product':'Windows',
-             'user':'1',
-             'last_alert':'Under'},
-        ]
+
+        virginia_under_a_nickle = {'name': 'Virginia Under A Nickle',
+                                   'threshold':'0.05', 'region':'us-east-1', 'zone':
+                                   'us-east-1b', 'instance_type':'g2.2xlarge',
+                                   'product':'Windows', 'user':'1', 'last_alert':'Under'}
+
+        virginia_over_twenty = {'name': 'Virginia Over Twenty',
+                                'threshold':'0.2', 'region':'us-east-1', 'zone':
+                                'us-east-1b', 'instance_type':'g2.2xlarge',
+                                'product':'Windows', 'user':'1', 'last_alert':'Over'}
 
 
-        alerts = alert.check_for_alerts(history, subscriptions)
-        alert_names = ['Virginia Under A Nickle', 'Virginia Over Twenty']
-        assert len(filter(lambda x: x['subscription']['name'] in alert_names, alerts)) == len(alert_names), "I didn't find one of %s in %s." % (alert_names, alerts)
+        assert not alert.check_for_alert(history, virginia_under_a_nickle) is None, "Should see an alert for Virginia Under A Nickle"
+        assert not alert.check_for_alert(history, virginia_over_twenty) is None, "Should see an alert for Virginia Over Twenty"
 
 
+        dublin_under_twenty = {'name': 'Dublin Under Twenty',
+                               'threshold':'0.2', 'region':'eu-west-1', 'zone': 'eu-west-1b',
+                               'instance_type':'g2.2xlarge', 'product':'Windows', 'user':'1',
+                               'last_alert':'Under'}
 
-    def test_check_for_alerts_with_no_matched_zones(self):
+        virginia_under_twenty = {'name': 'Virginia Under Twenty',
+                                 'threshold':'0.2', 'region':'us-east-1', 'zone': 'us-east-1b',
+                                 'instance_type':'g2.2xlarge', 'product':'Windows', 'user':'1',
+                                 'last_alert':'Under'}
+
+        assert alert.check_for_alert(history, dublin_under_twenty) is None, "Should not see an alert for Dublin Under Twenty"
+        assert alert.check_for_alert(history, virginia_under_twenty) is None, "Should not see an alert for Virginia Under Twenty"
+
+
+    def test_check_for_alert_with_no_matched_zones(self):
         """Alerts are only valid if the availability zone in the history matches an availability zone in the subscription"""
 
         history = [{u'Timestamp': datetime.datetime(2015, 12, 31, 22, 13, 43,
@@ -124,20 +112,20 @@ class AlertTest(unittest.TestCase):
                     u'SpotPrice': '0.104400',
                     u'AvailabilityZone': 'us-east-1d'}]
 
-        all_except_1d = [{'name': 'All except 1d',
+        all_except_1d = {'name': 'All except 1d',
                           'threshold':'0.05',
                           'region':'us-east-1',
                           'zone': 'us-east-1a,us-east-1b,us-east-1c',
                           'instance_type':'g2.2xlarge',
                           'product':'Windows',
                           'user':'1',
-                          'last_alert':'Under'}]
+                          'last_alert':'Under'}
 
-        alerts = alert.check_for_alerts(history, all_except_1d)
-        assert len(alerts) == 0, 'There should not be an alert for "%s"' % (all_except_1d[0]['subscription']['name'])
+        result = alert.check_for_alert(history, all_except_1d)
+        assert result is None, 'There should not be an alert for All except 1d'
 
 
-    def test_check_for_alerts_match_zone(self):
+    def test_check_for_alert_match_zone(self):
         """When we match a zone and all other criteria, we should create an alert."""
 
         history = [{u'Timestamp': datetime.datetime(2015, 12, 31, 22, 13, 43,
@@ -153,32 +141,30 @@ class AlertTest(unittest.TestCase):
                     u'SpotPrice': '0.104400',
                     u'AvailabilityZone': 'us-east-1d'}]
 
-        match_1d = [{'name': 'Sub for just 1d',
+        match_1d = {'name': 'Sub for just 1d',
                      'threshold':'0.05',
                      'region':'us-east-1',
                      'zone': 'us-east-1d',
                      'instance_type':'g2.2xlarge',
                      'product':'Windows',
                      'user':'1',
-                     'last_alert':'Under'}]
+                     'last_alert':'Under'}
 
-        alerts = alert.check_for_alerts(history, match_1d)
-        alert_names = [match_1d[0]['name']]
-        assert len(filter(lambda x: x['subscription']['name'] in alert_names, alerts)) == len(alert_names), "There should be an alert for %s in %s." % (alert_names, alerts)
+        assert not alert.check_for_alert(history, match_1d) is None, "There should be an alert from match_1d"
 
-        match_1q = [{'name': 'Sub for 1q',
+        match_1q = {'name': 'Sub for 1q',
                      'threshold':'0.05',
                      'region':'us-east-1',
                      'zone': 'us-east-1q',
                      'instance_type':'g2.2xlarge',
                      'product':'Windows',
                      'user':'1',
-                     'last_alert':'Under'}]
+                     'last_alert':'Under'}
 
-        assert len(alert.check_for_alerts(history, match_1q)) == 0, "There should not be any alerts for us_east-1q"
+        assert alert.check_for_alert(history, match_1q) is None, "There should not be any alerts for us_east-1q"
 
-    def test_check_for_alerts_sets_last_alert(self):
-        """check_for_alerts should set the last_alert attribute of the alert to indication the type of the alert."""
+    def test_check_for_alert_sets_last_alert(self):
+        """check_for_alert should set the last_alert attribute of the alert to indication the type of the alert."""
 
         history = [ {u'Timestamp': datetime.datetime(2015, 12, 31, 22, 13, 43,
                                                      tzinfo=tzutc()),
@@ -186,17 +172,17 @@ class AlertTest(unittest.TestCase):
                      u'InstanceType': 'g2.2xlarge',
                      u'SpotPrice': '0.105200',
                      u'AvailabilityZone': 'us-east-1b'}]
-        subscriptions = [{'name': 'Sub for 1b',
+        subscription = {'name': 'Sub for 1b',
                      'threshold':'0.05',
                      'region':'us-east-1',
                      'zone': 'us-east-1b',
                      'instance_type':'g2.2xlarge',
                      'product':'Windows',
                      'user':'1',
-                     'last_alert':'Under'}]
-        alerts = alert.check_for_alerts(history, subscriptions)
-        assert len(alerts) == 1, "There should be an alert for us_east-1b"
-        assert alerts[0]['subscription']['last_alert'] == 'Over'
+                     'last_alert':'Under'}
+        result = alert.check_for_alert(history, subscription)
+        assert not result is None, "There should be an alert for us_east-1b"
+        assert result['subscription']['last_alert'] == 'Over'
 
     def test_lowest_spotprice(self):
         """We should find the lowest spotprice for a given zone or return None."""
