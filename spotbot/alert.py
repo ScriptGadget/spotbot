@@ -8,6 +8,7 @@ def lowest_spotprice(history, zones):
     """Return the lowest spotprice for the given zones or None if the history
     doesn't contain any prices for those zones. An empty zones list
     matches any zone."""
+
     price = None
     relevant_history = history
 
@@ -33,6 +34,7 @@ def check_for_alert(history, subscription):
             found = 'Over'
         elif price and price <= float(subscription['threshold']) and subscription['last_alert'] == 'Over':
             found = 'Under'
+
         if not found is None:
             alert = {'subscription': subscription}
             alert['subscription']['last_alert'] = found

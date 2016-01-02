@@ -1,12 +1,6 @@
 #!/usr/bin/env python
 """
-Detect and send price alerts for AWS spot instances.
-
-Retrieves alert subscriptions from redis and scans the requested clouds
-firing-off any alerts discovered.
-
-This script will normally be run by a cronjob.
-
+Test alerts
 """
 
 import unittest
