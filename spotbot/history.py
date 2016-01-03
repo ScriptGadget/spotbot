@@ -12,7 +12,7 @@ def get_spot_history_from_aws(start_time, end_time, subscription):
     start_time and end_time should be in UTC.
 
     subscription should be in the form:
-    subscriptions = {'name': 'MyAlert For Dublin G2',
+    subscription = {'name': 'MyAlert For Dublin G2',
              'threshold':'0.2',
              'region':'eu-west-1',
              'zone': 'eu-west-1b',
@@ -52,6 +52,6 @@ def get_spot_history_from_aws(start_time, end_time, subscription):
         EndTime=end_time,
         InstanceTypes=subscription['instance_type'].split(','),
         ProductDescriptions=subscription['product'].split(','),
-        AvailabilityZones=subscription['zone'].split(','),
+        AvailabilityZone=subscription['zone'],
     )['SpotPriceHistory']
 

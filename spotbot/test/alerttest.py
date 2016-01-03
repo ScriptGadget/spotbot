@@ -106,17 +106,17 @@ class AlertTest(unittest.TestCase):
                     u'SpotPrice': '0.104400',
                     u'AvailabilityZone': 'us-east-1d'}]
 
-        all_except_1d = {'name': 'All except 1d',
+        just_1a = {'name': 'Just 1a',
                           'threshold':'0.05',
                           'region':'us-east-1',
-                          'zone': 'us-east-1a,us-east-1b,us-east-1c',
+                          'zone': 'us-east-1a',
                           'instance_type':'g2.2xlarge',
                           'product':'Windows',
                           'user':'1',
                           'last_alert':'Under'}
 
-        result = alert.check_for_alert(history, all_except_1d)
-        assert result is None, 'There should not be an alert for All except 1d'
+        result = alert.check_for_alert(history, just_1a)
+        assert result is None, 'There should not be an alert for Just 1a'
 
 
     def test_check_that_alert_matches_zone(self):
