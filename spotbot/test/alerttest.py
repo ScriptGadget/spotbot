@@ -176,7 +176,7 @@ class AlertTest(unittest.TestCase):
                      'last_alert':'Under'}
         result = alert.check_for_alert(history, subscription)
         assert not result is None, "There should be an alert for us_east-1b"
-        assert result['subscription']['last_alert'] == 'Over'
+        assert result['last_alert'] == 'Over'
 
     def test_check_for_alert_sets_spotprice(self):
         """check_for_alert should set the last_alert attribute of the alert to indication the type of the alert."""
