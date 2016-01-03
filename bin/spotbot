@@ -39,6 +39,7 @@ def main():
 
             else:
                 messages[sub['user']] = message
+            alert.update_subscription_with_last_result(redis_store, key, alert_found)
 
     for user in messages:
         web_hook=redis_store.hget('sb:user#' + user, 'slack_webhook')

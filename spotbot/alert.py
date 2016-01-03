@@ -3,6 +3,7 @@
 Identify price alerts.
 
 """
+import redis
 
 def lowest_spotprice(history, zones):
     """Return the lowest spotprice for the given zones or None if the history
@@ -41,3 +42,6 @@ def check_for_alert(history, subscription):
             alert['spot_price'] = price
 
     return alert
+
+def update_subscription_with_last_result(redis_store, key, alert):
+    return redis_store.hset(key, 'last_alert', alert['last_alert'])
