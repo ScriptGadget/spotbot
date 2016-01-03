@@ -38,6 +38,7 @@ def check_for_alert(history, subscription):
         if not found is None:
             alert = {'subscription': subscription}
             alert['subscription']['last_alert'] = found
+            alert['last_alert'] = found
             alert['spot_price'] = price
 
     return alert
