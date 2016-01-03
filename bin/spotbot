@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+"""
+Detect and send price alerts for AWS spot instances.
+
+Retrieves alert subscriptions from redis and scans the requested clouds
+firing-off any alerts discovered.
+
+This script will normally be run by a cronjob.
+
+"""
+
+import datetime
+import redis
+from spotbot import subscription
+from spotbot import history
+from spotbot import alert
+from spotbot import slack
+
+def main():
+    redis_store = redis.StrictRedis()
+    subs = subscription.get_subscriptions(redis_store)
+    last_scan = redis_store.get('sb:last_scan')
+    now = datetime.datetime.utcnow()
+
+    if last_scan is None:
+        last_scan = now - datetime.timedelta(0, 15*60)
+
+
+    messages = {}
+    for key in subs:
+        sub = subs[key]
+        prices = history.get_spot_history_from_aws(last_scan, now, sub)
+        alert_found = alert.check_for_alert(prices, sub)
+        if not alert_found is None:
+            message = slack.format_notification(alert_found, sub)
+
+            if messages.has_key(sub['user']):
+                messages[sub['user']] = messages[sub['user']] + "\n" + message
+
+            else:
+                messages[sub['user']] = message
+
+    for user in messages:
+        web_hook=redis_store.hget('sb:user#' + user, 'slack_webhook')
+        channel=redis_store.hget('sb:user#' + user, 'slack_channel')
+        slack.send_notification(web_hook=web_hook, message=messages[user], channel=channel)
+
+    redis_store.set('sb:last_scan', now)
+
+
+main()
