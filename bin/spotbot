@@ -10,16 +10,15 @@ This script will normally be run by a cronjob.
 """
 
 import datetime
-import redis
 from spotbot import subscription
 from spotbot import history
 from spotbot import alert
 from spotbot import slack
 
 def main():
-    redis_store = redis.StrictRedis()
-    subs = subscription.get_subscriptions(redis_store)
-    last_scan = redis_store.get('sb:last_scan')
+    state_store = subscription.get_state_store()
+    subs = subscription.get_subscriptions(state_store)
+    last_scan = subscription.get_last_scan(state_store)
     now = datetime.datetime.utcnow()
 
     if last_scan is None:
@@ -39,14 +38,14 @@ def main():
 
             else:
                 messages[sub['user']] = message
-            alert.update_subscription_with_last_result(redis_store, key, alert_found)
+            alert.update_subscription_with_last_result(state_store, key, alert_found)
 
     for user in messages:
-        web_hook=redis_store.hget('sb:user#' + user, 'slack_webhook')
-        channel=redis_store.hget('sb:user#' + user, 'slack_channel')
+        web_hook=subscription.get_web_hook(state_store, user)
+        channel=subscription.get_notification_channel(state_store, user)
         slack.send_notification(web_hook=web_hook, message=messages[user], channel=channel)
 
-    redis_store.set('sb:last_scan', now)
+    subscription.set_last_scan(state_store, now)
 
 
 main()
