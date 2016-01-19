@@ -3,7 +3,6 @@
 Identify price alerts.
 
 """
-import redis
 
 def lowest_spotprice(history, zones):
     """Return the lowest spotprice for the given zones or None if the history
