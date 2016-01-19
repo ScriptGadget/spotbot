@@ -33,3 +33,6 @@ def get_web_hook(state_store, user):
 
 def get_notification_channel(state_store, user):
     return state_store.hget('sb:user#' + user, 'slack_channel')
+
+def update_subscription_with_last_result(redis_store, key, alert):
+    return redis_store.hset(key, 'last_alert', alert['last_alert'])

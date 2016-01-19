@@ -38,7 +38,7 @@ def main():
 
             else:
                 messages[sub['user']] = message
-            alert.update_subscription_with_last_result(state_store, key, alert_found)
+            subscription.update_subscription_with_last_result(state_store, key, alert_found)
 
     for user in messages:
         web_hook=subscription.get_web_hook(state_store, user)
