@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+"""
+Detect and send price alerts for AWS spot instances.
+
+Retrieves alert subscriptions from redis and scans the requested zones
+firing-off any alerts discovered.
+
+This should be run within AWS lambda.
+"""
+
+import datetime
+from spotbot import history
+from spotbot import alert
+from spotbot import slack
+
+
+def lambda_handler(event, context):
+    return "Not Implemented"
