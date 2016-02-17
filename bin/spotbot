@@ -10,6 +10,7 @@ This script will normally be run by a cronjob.
 """
 
 import datetime
+import copy
 from spotbot import subscription
 from spotbot import history
 from spotbot import alert
@@ -17,7 +18,7 @@ from spotbot import slack
 
 def main():
     state_store = subscription.get_state_store()
-    subs = subscription.get_subscriptions(state_store)
+    subs = copy.deepcopy(subscription.get_subscriptions(state_store))
     last_scan = subscription.get_last_scan(state_store)
     now = datetime.datetime.utcnow()
 
@@ -46,6 +47,6 @@ def main():
         slack.send_notification(web_hook=web_hook, message=messages[user], channel=channel)
 
     subscription.set_last_scan(state_store, now)
-
+    subscription.close_state_store(state_store)
 
 main()
