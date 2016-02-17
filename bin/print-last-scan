@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+"""
+Print the timestamp from the last scan for alerts.
+"""
+
+import shelve
+
+
+shelf = shelve.open('spotbot-shelf')
+
+print "The last scan was", shelf['last_scan'] if shelf.has_key('last_scan') else 'never'
+
+shelf.sync()
+
+shelf.close()
