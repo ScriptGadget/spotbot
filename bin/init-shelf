@@ -10,10 +10,12 @@ shelf = shelve.open('spotbot-shelf')
 
 users = {
     'user#1':{
+        'email':'bill@brightcanopy.com',
         'slack_webhook':'https://hooks.slack.com/services/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',
         'slack_channel':'#alerts'
     },
     'user#2':{
+        'email':'bill@fra.me',
         'slack_webhook':'https://hooks.slack.com/services/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',
         'slack_channel':'#spotbot'
     },
@@ -22,32 +24,32 @@ users = {
 subscriptions = {
     'sub#1': {
         'name': 'BC Virginia 1b',
-        'threshold':'0.01',
+        'threshold':'0.20',
         'region':'us-east-1',
         'zone': 'us-east-1b',
         'instance_type':'g2.2xlarge',
         'product':'Windows',
-        'user':'user#1',
+        'user':'user#2',
         'last_alert':'Under'
     },
     'sub#2':{
         'name': 'BC Virginia 1c',
-        'threshold':'0.01',
+        'threshold':'0.20',
         'region':'us-east-1',
         'zone': 'us-east-1c',
         'instance_type':'g2.2xlarge',
         'product':'Windows',
-        'user':'user#1',
+        'user':'user#2',
         'last_alert':'Under'
     },
     'sub#3':{
         'name': 'BC Virginia 1d',
-        'threshold':'0.01',
+        'threshold':'0.20',
         'region':'us-east-1',
         'zone': 'us-east-1d',
         'instance_type':'g2.2xlarge',
         'product':'Windows',
-        'user':'user#1',
+        'user':'user#2',
         'last_alert':'Under'
     },
 }
