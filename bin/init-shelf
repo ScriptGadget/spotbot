@@ -24,7 +24,7 @@ users = {
 subscriptions = {
     'sub#1': {
         'name': 'BC Virginia 1b',
-        'threshold':'0.20',
+        'threshold':'0.50',
         'region':'us-east-1',
         'zone': 'us-east-1b',
         'instance_type':'g2.2xlarge',
@@ -34,7 +34,7 @@ subscriptions = {
     },
     'sub#2':{
         'name': 'BC Virginia 1c',
-        'threshold':'0.20',
+        'threshold':'0.50',
         'region':'us-east-1',
         'zone': 'us-east-1c',
         'instance_type':'g2.2xlarge',
@@ -44,7 +44,7 @@ subscriptions = {
     },
     'sub#3':{
         'name': 'BC Virginia 1d',
-        'threshold':'0.20',
+        'threshold':'0.50',
         'region':'us-east-1',
         'zone': 'us-east-1d',
         'instance_type':'g2.2xlarge',
