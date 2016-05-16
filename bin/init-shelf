@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
 Setup an initial user and subscriptions. Mostly for testing.
+WARNING: None of these webhooks are real. Do not expect these values to work.
 """
 
 import shelve
